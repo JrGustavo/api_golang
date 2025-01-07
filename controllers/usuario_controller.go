@@ -23,7 +23,7 @@ func GetUsuarios(w http.ResponseWriter, r *http.Request) {
 func GetUsuario(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	var usuario []models.Usuario
+	var usuario models.Usuario
 	data.DB.Preload("Rol").Find(&usuario, params["id"])
 	if usuario.ID == 0 {
 		w.WriteHeader(http.StatusNotFound)
@@ -37,6 +37,7 @@ func GetUsuario(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewUsuario(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var usuario models.Usuario
 	json.NewDecoder(r.Body).Decode(&usuario)
 	createdUsuario := data.DB.Create(&usuario)
@@ -45,10 +46,20 @@ func NewUsuario(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
-
 	}
+
+	if err := data.DB.Preload("Rol").First(&usuario, usuario.ID).Error; err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(utils.Respuesta{
+			Msg:        "Error al cargar Rol",
+			StatusCode: http.StatusInternalServerError,
+			Data:       err.Error(),
+		})
+		return
+	}
+
 	json.NewEncoder(w).Encode(utils.Respuesta{
-		Msg:        "Usuario creado con exito",
+		Msg:        "Usuario registrado con éxito",
 		StatusCode: http.StatusOK,
 		Data:       usuario,
 	})
@@ -118,8 +129,5 @@ func DeleteUsuario(w http.ResponseWriter, r *http.Request) {
 
 	data.DB.Delete(&usuario)
 	w.WriteHeader(http.StatusOK)
-
-	}
-
 
 }
