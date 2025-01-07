@@ -24,7 +24,7 @@ func GetUsuario(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var usuario models.Usuario
-	data.DB.Preload("Rol").Find(&usuario, params["id"])
+	data.DB.Preload("Rol").First(&usuario, params["id"])
 	if usuario.ID == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -51,7 +51,7 @@ func NewUsuario(w http.ResponseWriter, r *http.Request) {
 	if err := data.DB.Preload("Rol").First(&usuario, usuario.ID).Error; err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(utils.Respuesta{
-			Msg:        "Error al cargar Rol",
+			Msg:        "Error al cargar el Rol",
 			StatusCode: http.StatusInternalServerError,
 			Data:       err.Error(),
 		})

@@ -9,7 +9,6 @@ import (
 
 type Usuario struct {
 	gorm.Model
-
 	Nombre   string `json:"nombre" gorm:"size:100;not null"`
 	Correo   string `json:"correo" gorm:"size:100;unique;not null"`
 	Password string `json:"-" gorm:"default:true"`
